@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "tpfi"
+version = "1.0.0"
+description = "Plot identification charts for Kepler, K2 and TESS."
+authors = ["Keyu Xing <kyxing@mail.bnu.edu.cn>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/keyuxing/tpfi"
+repository = "https://github.com/keyuxing/tpfi"
+
+[tool.poetry.dependencies]
+lightkurve = ">=2.3"
+python = ">=3.8"
+
+[tool.poetry.group.dev.dependencies]
+black = ">=23.3.0"
