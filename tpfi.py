@@ -136,9 +136,11 @@ def plot_tpf(
     ax_tpf: Axes,
     tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile],
     r: Table,
+    cmap: str,
+    c_star: str,
+    c_mask: str,
+    mag_limit: float,
     ax_cb: Axes = None,
-    cmap: str = "viridis",
-    mag_limit: float = None,
 ):
     """
     Plot the identification charts.
@@ -151,16 +153,17 @@ def plot_tpf(
         Target pixel files read by `lightkurve`
     r: `astropy.table.Table`
         The table of the Gaia objects in the area of TPF
-    ax_cb: `matplotlib.axes.Axes`
-        A matplotlib axes object to plot the color bar into
     cmap: str
         The colormap to use
+    c_star: str
+        The color of the stars
+    c_mask: str
+        The color of the pipeline mask
     mag_limit: float
         The magnitude limit (Gaia G mag) to plot the stars in the TPF
+    ax_cb: `matplotlib.axes.Axes`
+        A matplotlib axes object to plot the color bar into
     """
-
-    if mag_limit is None:
-        mag_limit = 18 if tpf.meta["TELESCOP"] == "TESS" else 19.5
 
     # TPF plot
     with warnings.catch_warnings():
@@ -216,7 +219,7 @@ def plot_tpf(
             size_k = size_k * 5
         size = size_k / 1.5 ** (gaia_mags - target_gaia_mag)
 
-        ax_tpf.scatter(x, y, s=size, c="red", alpha=0.5, edgecolor=None, zorder=11)
+        ax_tpf.scatter(x, y, s=size, c=c_star, alpha=0.5, edgecolor=None, zorder=11)
         ax_tpf.scatter(x[this], y[this], marker="x", c="white", s=size_k / 2.5, zorder=12)
 
     # Pipeline aperture
@@ -225,8 +228,8 @@ def plot_tpf(
     for i, j in aperture_masks:
         xy = (j - 0.5, i - 0.5)
         if aperture[i, j]:
-            ax_tpf.add_patch(patches.Rectangle(xy, 1, 1, color="tomato", fill=True, alpha=0.4))
-            ax_tpf.add_patch(patches.Rectangle(xy, 1, 1, color="tomato", fill=False, alpha=0.6, lw=1.5, zorder=9))
+            ax_tpf.add_patch(patches.Rectangle(xy, 1, 1, color=c_mask, fill=True, alpha=0.4))
+            ax_tpf.add_patch(patches.Rectangle(xy, 1, 1, color=c_mask, fill=False, alpha=0.6, lw=1.5, zorder=9))
         else:
             ax_tpf.add_patch(patches.Rectangle(xy, 1, 1, color="gray", fill=False, alpha=0.2, lw=0.5, zorder=8))
 
@@ -252,6 +255,9 @@ def plot_identification(
     tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile],
     ax: Axes = None,
     mag_limit: float = None,
+    cmap: str = "viridis",
+    c_star: str = "red",
+    c_mask: str = "tomato",
     verbose: bool = False,
 ):
     """
@@ -269,6 +275,12 @@ def plot_identification(
     mag_limit : float, optional
         The magnitude limit (Gaia G mag) to plot the stars in the TPF. If not provided, the default value will be used.
         (18 for TESS, 19.5 for Kepler/K2)
+    cmap : str, optional
+        The colormap to use for the TPF. Default is 'viridis'.
+    c_star: str, optional
+        The color of the stars in the TPF. Default is 'red'.
+    c_mask: str, optional
+        The color of the pipeline mask in the TPF. Default is 'tomato'.
     verbose : bool, optional
         Whether to print out progress messages. Default is False.
 
@@ -281,6 +293,9 @@ def plot_identification(
     if ax is None:
         _, ax = plt.subplots(figsize=(9, 4))
 
+    if mag_limit is None:
+        mag_limit = 18 if tpf.meta["TELESCOP"] == "TESS" else 19.5
+
     divider = make_axes_locatable(ax)
     ax_tpf = divider.append_axes("right", size="100%", pad=0.1)
     ax_cb = divider.append_axes("right", size="8%", pad=0.35)
@@ -288,10 +303,18 @@ def plot_identification(
     plot_sky(ax, tpf, verbose)
 
     r = query_nearby_gaia_objects(tpf, verbose=verbose)
-    plot_tpf(ax_tpf, tpf, r, ax_cb=ax_cb, mag_limit=mag_limit)
+    plot_tpf(ax_tpf, tpf, r, cmap, c_star, c_mask, ax_cb=ax_cb, mag_limit=mag_limit)
 
 
-def plot_season(label: str, ax: Axes = None, mag_limit: float = None, verbose: bool = False):
+def plot_season(
+    label: str,
+    ax: Axes = None,
+    mag_limit: float = 19.5,
+    cmap: str = "gray_r",
+    c_star: str = "red",
+    c_mask: str = "tomato",
+    verbose: bool = False,
+):
     """
     Plot identification charts for different seasons of an astronomical object using data from the Kepler mission.
 
@@ -305,8 +328,13 @@ def plot_season(label: str, ax: Axes = None, mag_limit: float = None, verbose: b
     ax : `matplotlib.axes.Axes`, optional
         A matplotlib axes object to plot the identification charts into. If not provided, a new figure will be created.
     mag_limit : float, optional
-        The magnitude limit (Gaia G mag) to plot the stars in the TPF. If not provided, the default value will be used.
-        (18 for TESS, 19.5 for Kepler/K2)
+        The magnitude limit (Gaia G mag) to plot the stars in the TPF. Default is 19.5.
+    c_star: str, optional
+        The color of the stars in the TPFs. Default is 'red'.
+    c_mask: str, optional
+        The color of the pipeline mask in the TPFs. Default is 'tomato'.
+    cmap : str, optional
+        The colormap to use for the TPF. Default is 'gray_r'.
     verbose : bool, optional
         Whether to print out progress messages. Default is False.
 
@@ -371,7 +399,7 @@ def plot_season(label: str, ax: Axes = None, mag_limit: float = None, verbose: b
     r = query_nearby_gaia_objects(tpf_list[max_index], verbose=verbose)
     for i, tpf in enumerate(tpf_list):
         if tpf is not None:
-            plot_tpf(ax_list[i], tpf_list[i], r, cmap="gray_r", mag_limit=mag_limit)
+            plot_tpf(ax_list[i], tpf_list[i], r, cmap, c_star, c_mask, mag_limit)
             at = AnchoredText(f"Season {i + 1}", frameon=False, loc="upper left", prop=dict(size=13), zorder=100)
             ax_list[i].add_artist(at)
         ax_list[i].set_xticks([])
