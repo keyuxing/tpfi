@@ -21,7 +21,7 @@ from matplotlib.colorbar import Colorbar
 from matplotlib.offsetbox import AnchoredText
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from utils import add_orientation, add_scalebar, calculate_theta, query_sky_img
+from .utils import add_orientation, add_scalebar, calculate_theta, query_sky_img
 
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"
 Gaia.ROW_LIMIT = -1
