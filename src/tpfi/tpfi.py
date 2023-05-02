@@ -139,6 +139,7 @@ def plot_tpf(
     cmap: str,
     c_star: str,
     c_mask: str,
+    show_ticklabels: bool,
     mag_limit: float,
     ax_cb: Axes = None,
 ):
@@ -159,6 +160,8 @@ def plot_tpf(
         The color of the stars
     c_mask: str
         The color of the pipeline mask
+    show_ticklabels: bool
+        Whether to show the tick labels
     mag_limit: float
         The magnitude limit (Gaia G mag) to plot the stars in the TPF
     ax_cb: `matplotlib.axes.Axes`
@@ -181,10 +184,16 @@ def plot_tpf(
     x_pixel, y_pixel = tpf.shape[1:][1], tpf.shape[1:][0]
     ax_tpf.set_xlim(-0.5, x_pixel - 0.5)
     ax_tpf.set_ylim(-0.5, y_pixel - 0.5)
-    ax_tpf.set_xticks(np.arange(0, x_pixel, 1))
-    ax_tpf.set_yticks(np.arange(0, y_pixel, 1))
-    ax_tpf.set_xticklabels(np.arange(1, x_pixel + 1, 1))
-    ax_tpf.set_yticklabels(np.arange(1, y_pixel + 1, 1))
+
+    if show_ticklabels:
+        ax_tpf.set_xticks(np.arange(0, x_pixel, 1))
+        ax_tpf.set_yticks(np.arange(0, y_pixel, 1))
+        ax_tpf.set_xticklabels(np.arange(1, x_pixel + 1, 1))
+        ax_tpf.set_yticklabels(np.arange(1, y_pixel + 1, 1))
+    else:
+        ax_tpf.set_xticks([])
+        ax_tpf.set_yticks([])
+
     ax_tpf.yaxis.set_ticks_position("right")
     ax_tpf.invert_xaxis()
 
@@ -258,6 +267,7 @@ def plot_identification(
     cmap: str = "viridis",
     c_star: str = "red",
     c_mask: str = "tomato",
+    show_ticklabels: bool = True,
     verbose: bool = False,
 ):
     """
@@ -281,6 +291,8 @@ def plot_identification(
         The color of the stars in the TPF. Default is 'red'.
     c_mask: str, optional
         The color of the pipeline mask in the TPF. Default is 'tomato'.
+    show_ticklabels : bool, optional
+        Whether to show the tick labels in the TPF. Default is True.
     verbose : bool, optional
         Whether to print out progress messages. Default is False.
 
@@ -303,7 +315,7 @@ def plot_identification(
     plot_sky(ax, tpf, verbose)
 
     r = query_nearby_gaia_objects(tpf, verbose=verbose)
-    plot_tpf(ax_tpf, tpf, r, cmap, c_star, c_mask, ax_cb=ax_cb, mag_limit=mag_limit)
+    plot_tpf(ax_tpf, tpf, r, cmap, c_star, c_mask, show_ticklabels, mag_limit, ax_cb)
 
 
 def plot_season(
@@ -399,8 +411,6 @@ def plot_season(
     r = query_nearby_gaia_objects(tpf_list[max_index], verbose=verbose)
     for i, tpf in enumerate(tpf_list):
         if tpf is not None:
-            plot_tpf(ax_list[i], tpf_list[i], r, cmap, c_star, c_mask, mag_limit)
+            plot_tpf(ax_list[i], tpf_list[i], r, cmap, c_star, c_mask, False, mag_limit)
             at = AnchoredText(f"Season {i + 1}", frameon=False, loc="upper left", prop=dict(size=13), zorder=100)
             ax_list[i].add_artist(at)
-        ax_list[i].set_xticks([])
-        ax_list[i].set_yticks([])
