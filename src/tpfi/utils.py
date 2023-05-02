@@ -71,10 +71,28 @@ def add_orientation(ax: Axes, theta: float, pad: float, color: str, reverse: boo
     x2, y2 = get_arrow_loc()
 
     ax.arrow((1 - pad * ratio), pad, -x1, y1, color=color, head_width=0.01, transform=ax.transAxes, zorder=100)
-    ax.text(*get_text_loc(x1, y1), s="E", color=color, ha="center", va="center", transform=ax.transAxes, zorder=100)
+    ax.text(
+        *get_text_loc(x1, y1),
+        s="E",
+        color=color,
+        ha="center",
+        va="center",
+        transform=ax.transAxes,
+        fontsize=10,
+        zorder=100
+    )
 
     ax.arrow((1 - pad * ratio), pad, -x2, y2, color=color, head_width=0.01, transform=ax.transAxes, zorder=100)
-    ax.text(*get_text_loc(x2, y2), s="N", color=color, ha="center", va="center", transform=ax.transAxes, zorder=100)
+    ax.text(
+        *get_text_loc(x2, y2),
+        s="N",
+        color=color,
+        ha="center",
+        va="center",
+        transform=ax.transAxes,
+        fontsize=10,
+        zorder=100
+    )
 
 
 def add_scalebar(ax: Axes, pad: float, length: float, scale: str):
