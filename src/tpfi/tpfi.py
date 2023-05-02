@@ -85,7 +85,7 @@ def query_nearby_gaia_objects(
         return r
 
 
-def plot_sky(ax_sky: Axes, tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile], verbose: bool):
+def plot_sky(ax_sky: Axes, tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile], show_label: bool, verbose: bool):
     """
     Plot the sky image corresponding to the target pixel file.
 
@@ -95,6 +95,8 @@ def plot_sky(ax_sky: Axes, tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile
         A matplotlib axes object to plot the sky image into
     tpf: `lightkurve.TessTargetPixelFile` or `lightkurve.KeplerTargetPixelFile`
         Target pixel files read by `lightkurve`
+    show_label: bool
+        Whether to show the label of the target
     verbose: bool
         Whether to show the progress of the query
     """
@@ -122,8 +124,8 @@ def plot_sky(ax_sky: Axes, tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile
     ax_sky.set_ylim(0, sky_img.shape[0])
     ax_sky.invert_xaxis()
 
-    at = AnchoredText(tpf.meta["OBJECT"], frameon=False, loc="upper left", prop=dict(size=13))
-    ax_sky.add_artist(at)
+    if show_label:
+        ax_sky.add_artist(AnchoredText(tpf.meta["OBJECT"], frameon=False, loc="upper left", prop=dict(size=13)))
 
     # Add orientation arrows
     add_orientation(ax=ax_sky, theta=theta, pad=0.15, color="k", reverse=reverse)
@@ -267,6 +269,7 @@ def plot_identification(
     cmap: str = "viridis",
     c_star: str = "red",
     c_mask: str = "tomato",
+    show_label: bool = True,
     show_ticklabels: bool = True,
     verbose: bool = False,
 ):
@@ -291,6 +294,8 @@ def plot_identification(
         The color of the stars in the TPF. Default is 'red'.
     c_mask: str, optional
         The color of the pipeline mask in the TPF. Default is 'tomato'.
+    show_label: bool, optional
+        Whether to show the label of the target in the sky image. Default is True.
     show_ticklabels : bool, optional
         Whether to show the tick labels in the TPF. Default is True.
     verbose : bool, optional
@@ -312,7 +317,7 @@ def plot_identification(
     ax_tpf = divider.append_axes("right", size="100%", pad=0.1)
     ax_cb = divider.append_axes("right", size="8%", pad=0.35)
 
-    plot_sky(ax, tpf, verbose)
+    plot_sky(ax, tpf, show_label, verbose)
 
     r = query_nearby_gaia_objects(tpf, verbose=verbose)
     plot_tpf(ax_tpf, tpf, r, cmap, c_star, c_mask, show_ticklabels, mag_limit, ax_cb)
@@ -325,6 +330,7 @@ def plot_season(
     cmap: str = "gray_r",
     c_star: str = "red",
     c_mask: str = "tomato",
+    show_label: bool = True,
     verbose: bool = False,
 ):
     """
@@ -345,6 +351,8 @@ def plot_season(
         The color of the stars in the TPFs. Default is 'red'.
     c_mask: str, optional
         The color of the pipeline mask in the TPFs. Default is 'tomato'.
+    show_label: bool, optional
+        Whether to show the label of the target in the sky image. Default is True.
     cmap : str, optional
         The colormap to use for the TPF. Default is 'gray_r'.
     verbose : bool, optional
@@ -406,7 +414,7 @@ def plot_season(
     for i, percent in enumerate(percent_array):
         ax_list.append(divider.append_axes("right", size=f"{percent}%", pad=0.1))
 
-    plot_sky(ax, tpf_list[max_index], verbose)
+    plot_sky(ax, tpf_list[max_index], show_label, verbose)
 
     r = query_nearby_gaia_objects(tpf_list[max_index], verbose=verbose)
     for i, tpf in enumerate(tpf_list):
