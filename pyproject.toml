@@ -14,3 +14,11 @@ python = ">=3.8"
 
 [tool.poetry.group.dev.dependencies]
 black = ">=23.3.0"
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+select = ["F", "I", "E", "W", "YTT", "B", "Q", "PLE", "PLW"]
+src = ["src", "test"]

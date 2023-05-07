@@ -5,7 +5,7 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.wcs import Wcsprm
 from astroquery.hips2fits import hips2fits
-from lightkurve import TessTargetPixelFile, KeplerTargetPixelFile
+from lightkurve import KeplerTargetPixelFile, TessTargetPixelFile
 from matplotlib.axes import Axes
 
 

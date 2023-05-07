@@ -13,7 +13,7 @@ from astropy.visualization.mpl_normalize import imshow_norm
 from astroquery.gaia import Gaia
 from astroquery.simbad import Simbad
 from erfa import ErfaWarning
-from lightkurve import LightkurveWarning, TessTargetPixelFile, KeplerTargetPixelFile
+from lightkurve import KeplerTargetPixelFile, LightkurveWarning, TessTargetPixelFile
 from matplotlib import patches
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
@@ -411,7 +411,7 @@ def plot_season(
     percent_array = np.nan_to_num(percent_array, nan=np.nanmedian(percent_array))
 
     ax_list = []
-    for i, percent in enumerate(percent_array):
+    for percent in percent_array:
         ax_list.append(divider.append_axes("right", size=f"{percent}%", pad=0.1))
 
     plot_sky(ax, tpf_list[max_index], show_label, verbose)
