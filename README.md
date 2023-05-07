@@ -11,11 +11,11 @@ plots to help visualize target stars and their surrounding environments.
 
 **Plot identification charts for Kepler, K2 and TESS.**
 
-![alt text](https://raw.githubusercontent.com/keyuxing/tpfi/main/examples/kepler.png)
+![alt text](https://github.com/keyuxing/tpfi/blob/main/examples/kepler.png)
 
-![alt text](https://raw.githubusercontent.com/keyuxing/tpfi/main/examples/k2.png)
+![alt text](https://github.com/keyuxing/tpfi/blob/main/examples/k2.png)
 
-![alt text](https://raw.githubusercontent.com/keyuxing/tpfi/main/examples/tess.png)
+![alt text](https://github.com/keyuxing/tpfi/blob/main/examples/tess.png)
 
 The `plot_identification` function creates identification charts, which are useful 
 for determining if a target is contaminated by nearby stars. In each chart, the 
@@ -30,7 +30,7 @@ This function is revised based on
 
 **Plot season charts for Kepler targets.**
 
-![alt text](https://raw.githubusercontent.com/keyuxing/tpfi/main/examples/season.png)
+![alt text](https://github.com/keyuxing/tpfi/blob/main/examples/season.png)
 
 The `plot_season` function creates a plot of the TPF for each season of the Kepler 
 mission for a given target star. Note that this function is only applicable for 
