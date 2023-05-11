@@ -11,7 +11,6 @@ from astropy.time import Time
 from astropy.visualization import SqrtStretch
 from astropy.visualization.mpl_normalize import imshow_norm
 from astroquery.gaia import Gaia
-from astroquery.simbad import Simbad
 from erfa import ErfaWarning
 from lightkurve import KeplerTargetPixelFile, LightkurveWarning, TessTargetPixelFile
 from matplotlib import patches
@@ -25,9 +24,6 @@ from .utils import add_orientation, add_scalebar, calculate_theta, query_sky_img
 
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"
 Gaia.ROW_LIMIT = -1
-
-CUSTOM_SIMBAD = Simbad()
-CUSTOM_SIMBAD.add_votable_fields("ids")
 
 REF_EPOCH = Time("J2016")
 
@@ -75,7 +71,7 @@ def query_nearby_gaia_objects(
     j = Gaia.cone_search_async(coords, radius, columns=["source_id", "phot_g_mean_mag", "ra", "dec", "pmra", "pmdec"])
     r = j.get_results()
 
-    if not (r["dist"] < 3).any():
+    if not (r["dist"] < 3 / 3600).any():
         if verbose:
             print("Target not found in Gaia DR3")
         return None
@@ -204,6 +200,7 @@ def plot_tpf(
         ax_tpf.add_artist(at)
     else:
         target_gaia_id = r[0]["source_id"]
+        print(r)
         r.sort("phot_g_mean_mag")
         this = np.nonzero(r["source_id"] == target_gaia_id)[0][0]
         magnitude_limit = max(r["phot_g_mean_mag"][0] + 3, mag_limit)
