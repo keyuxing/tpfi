@@ -200,7 +200,6 @@ def plot_tpf(
         ax_tpf.add_artist(at)
     else:
         target_gaia_id = r[0]["source_id"]
-        print(r)
         r.sort("phot_g_mean_mag")
         this = np.nonzero(r["source_id"] == target_gaia_id)[0][0]
         magnitude_limit = max(r["phot_g_mean_mag"][0] + 3, mag_limit)
