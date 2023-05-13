@@ -1,0 +1,61 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Plot Identification Charts for TESS WG8
+
+on:
+  workflow_dispatch:
+
+jobs:
+  plot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
+      - name: Install pip packages and latexmk
+        run: |
+          python -m pip install --upgrade pip
+          pip install tpfi pypdf pylatex
+          sudo apt install -y texlive-latex-extra latexmk
+
+      - name: Generate script
+        env:
+          SECTOR: ${{ secrets.SECTOR }}
+        run: |
+          python download.py -s $SECTOR
+          chmod +x download.sh
+
+      - name: Download data
+        env:
+          SECTOR: ${{ secrets.SECTOR }}
+        run: |
+          mkdir tpfs && cd tpfs
+          ../download.sh
+
+      - name: Plot identification charts
+        env:
+          SECTOR: ${{ secrets.SECTOR }}
+        run: |
+          python plot_sector.py -s $SECTOR
+
+      - name: Upload results
+        uses: actions/upload-artifact@main
+        with:
+          name: Results
+          path: S*.pdf
