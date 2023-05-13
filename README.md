@@ -19,9 +19,11 @@ plots to help visualize target stars and their surrounding environments.
 
 The `plot_identification` function creates identification charts, which are useful 
 for determining if a target is contaminated by nearby stars. In each chart, the 
-right panel displays the target (marked by a cross symbol) and nearby stars. The 
-circle size indicates their relative brightness. The left panel displays the same 
-sky coverage but from the [DSS2 Red survey](https://skyview.gsfc.nasa.gov/current/cgi/moreinfo.pl?survey=DSS2%20Red).
+right panel overlays the Gaia DR3 catalog onto the TESS Target Pixel Files (TPF) 
+with the target marked by a cross symbol. The circle size represents the relative 
+brightness of the stars according to Gaia G magnitude. The left panel displays the 
+same sky coverage but taken from the 
+[DSS2 Red survey](https://skyview.gsfc.nasa.gov/current/cgi/moreinfo.pl?survey=DSS2%20Red).
 
 This function is revised based on 
 [_tpfplotter_](https://github.com/jlillo/tpfplotter). 
