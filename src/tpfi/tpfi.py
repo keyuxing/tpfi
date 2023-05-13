@@ -71,7 +71,7 @@ def query_nearby_gaia_objects(
     j = Gaia.cone_search_async(coords, radius, columns=["source_id", "phot_g_mean_mag", "ra", "dec", "pmra", "pmdec"])
     r = j.get_results()
 
-    if not (r["dist"] < 3 / 3600).any():
+    if not (r["dist"] < 4 / 3600).any():
         if verbose:
             print("Target not found in Gaia DR3")
         return None
