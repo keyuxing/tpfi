@@ -59,6 +59,7 @@ def query_nearby_gaia_objects(
     pm_ra = tpf.meta["PMRA"]
     pm_dec = tpf.meta["PMDEC"]
     if pm_ra and pm_dec:
+        cross_threshold = 3 / 3600
         pm_ra *= u.mas / u.yr
         pm_dec *= u.mas / u.yr
         coords_j2000 = SkyCoord(ra, dec, pm_ra_cosdec=pm_ra, pm_dec=pm_dec, frame="icrs", obstime=Time("J2000"))
@@ -66,12 +67,13 @@ def query_nearby_gaia_objects(
             warnings.filterwarnings("ignore", category=ErfaWarning)
             coords = coords_j2000.apply_space_motion(new_obstime=REF_EPOCH)
     else:
+        cross_threshold = 5 / 3600
         coords = SkyCoord(ra, dec, frame="icrs")
 
     j = Gaia.cone_search_async(coords, radius, columns=["source_id", "phot_g_mean_mag", "ra", "dec", "pmra", "pmdec"])
     r = j.get_results()
 
-    if not (r["dist"] < 4 / 3600).any():
+    if not (r["dist"] < cross_threshold).any():
         if verbose:
             print("Target not found in Gaia DR3")
         return None
