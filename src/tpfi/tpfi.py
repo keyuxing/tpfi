@@ -202,9 +202,11 @@ def plot_tpf(
         ax_tpf.add_artist(at)
     else:
         target_gaia_id = r[0]["source_id"]
+        target_gaia_mag = r[0]["phot_g_mean_mag"]
+
         r.sort("phot_g_mean_mag")
         this = np.nonzero(r["source_id"] == target_gaia_id)[0][0]
-        magnitude_limit = max(r["phot_g_mean_mag"][0] + 3, mag_limit)
+        magnitude_limit = max(target_gaia_mag + 3, mag_limit)
         r = r[r["phot_g_mean_mag"] < magnitude_limit][: max(this + 50, 300)]
 
         qr = QTable([r["ra"].filled(), r["dec"].filled(), r["pmra"].filled(0), r["pmdec"].filled(0)])
@@ -217,7 +219,6 @@ def plot_tpf(
 
         x, y = tpf.wcs.world_to_pixel(coords_obs)
         gaia_mags = np.asarray(r["phot_g_mean_mag"])
-        target_gaia_mag = gaia_mags[this]
 
         size_k = 1.2 * np.piecewise(
             target_gaia_mag,
