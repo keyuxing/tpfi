@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          poetry install --without dev
+          poetry install
 
       - name: Run tests
         run: |

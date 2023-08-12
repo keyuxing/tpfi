@@ -14,6 +14,8 @@ python = ">=3.8"
 
 [tool.poetry.group.dev.dependencies]
 black = ">=23.3.0"
+parameterized = ">=0.9.0"
+ruff = ">=0.0.284"
 
 [tool.black]
 line-length = 120
