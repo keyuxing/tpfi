@@ -95,7 +95,7 @@ def add_orientation(ax: Axes, theta: float, pad: float, color: str, reverse: boo
     )
 
 
-def add_scalebar(ax: Axes, pad: float, length: float, scale: str):
+def add_scalebar(ax: Axes, pad: float, length: float, scale: str, color: str):
     """
     Plot the scale bar.
 
@@ -109,6 +109,8 @@ def add_scalebar(ax: Axes, pad: float, length: float, scale: str):
         The length of the scale bar
     scale: str
         Scale of the scale bar
+    color: str
+        The color of the scale bar
     """
 
     ratio = ax.get_data_ratio()
@@ -116,10 +118,18 @@ def add_scalebar(ax: Axes, pad: float, length: float, scale: str):
     x_max = x_min + length
     y_min = pad * 0.95
     y_max = pad * 1.05
-    ax.hlines(y=pad, xmin=x_min, xmax=x_max, colors="k", ls="-", lw=1.5, transform=ax.transAxes)
-    ax.vlines(x=x_min, ymin=y_min, ymax=y_max, colors="k", ls="-", lw=1.5, transform=ax.transAxes)
-    ax.vlines(x=x_max, ymin=y_min, ymax=y_max, colors="k", ls="-", lw=1.5, transform=ax.transAxes)
-    ax.text(x_min + length / 2, pad * 1.1, scale, horizontalalignment="center", fontsize=10, transform=ax.transAxes)
+    ax.hlines(y=pad, xmin=x_min, xmax=x_max, colors=color, ls="-", lw=1.5, transform=ax.transAxes)
+    ax.vlines(x=x_min, ymin=y_min, ymax=y_max, colors=color, ls="-", lw=1.5, transform=ax.transAxes)
+    ax.vlines(x=x_max, ymin=y_min, ymax=y_max, colors=color, ls="-", lw=1.5, transform=ax.transAxes)
+    ax.text(
+        x_min + length / 2,
+        pad * 1.1,
+        scale,
+        horizontalalignment="center",
+        fontsize=10,
+        transform=ax.transAxes,
+        color=color,
+    )
 
 
 def query_sky_img(

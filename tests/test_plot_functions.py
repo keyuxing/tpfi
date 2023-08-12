@@ -56,6 +56,9 @@ class TestIdentificationFunctions(unittest.TestCase):
             cmap="Blues",
             c_star="k",
             c_mask="grey",
+            c_arrow_sky="r",
+            c_arrow_tpf="r",
+            c_scale="r",
             show_label=False,
             show_ticklabels=False,
             verbose=True,
@@ -74,7 +77,18 @@ class TestSeasonFunction(unittest.TestCase):
         plt.savefig(OUTPUT_DIR / "test_season.png", bbox_inches="tight", dpi=300)
 
     def test_plot_season_with_params(self):
-        plot_season("KIC2991403", mag_limit=20, cmap="Blues", c_star="k", c_mask="grey", show_label=False, verbose=True)
+        plot_season(
+            "KIC2991403",
+            mag_limit=20,
+            cmap="Blues",
+            c_star="k",
+            c_mask="grey",
+            c_arrow_sky="r",
+            c_arrow_tpf="r",
+            c_scale="r",
+            show_label=False,
+            verbose=True,
+        )
         plt.savefig(OUTPUT_DIR / "test_season_with_params.png", bbox_inches="tight", dpi=300)
 
 
