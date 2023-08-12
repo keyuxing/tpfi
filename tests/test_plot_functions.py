@@ -52,6 +52,7 @@ class TestIdentificationFunctions(unittest.TestCase):
         plot_identification(
             self.tpf,
             mag_limit=20,
+            frame=0,
             cmap="Blues",
             c_star="k",
             c_mask="grey",

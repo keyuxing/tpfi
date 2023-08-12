@@ -142,6 +142,7 @@ def plot_tpf(
     tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile],
     ax: Axes = None,
     mag_limit: float = None,
+    frame: int = None,
     cmap: str = "viridis",
     c_star: str = "red",
     c_mask: str = "tomato",
@@ -162,6 +163,8 @@ def plot_tpf(
     mag_limit: float, optional
         The magnitude limit (Gaia G mag) to plot the stars in the TPF. If not provided, the default value will be used
         (18 for TESS, 19.5 for Kepler/K2).
+    frame: int, optional
+        The frame number of the TPF to plot. If not provided, the median of the TPF will be used.
     cmap: str, optional
         The colormap to use. Default is 'viridis'.
     c_star: str, optional
@@ -188,16 +191,19 @@ def plot_tpf(
         mag_limit = 18 if tpf.meta["TELESCOP"] == "TESS" else 19.5
 
     # TPF plot
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", RuntimeWarning)
-        median_flux = np.nanmedian(tpf.flux.value, axis=0)
+    if frame is None:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            flux = np.nanmedian(tpf.flux.value, axis=0)
+    else:
+        flux = tpf.flux[frame].value
 
     try:
-        division = int(np.log10(np.nanmax(median_flux)))
+        division = int(np.log10(np.nanmax(flux)))
     except ValueError:
         division = 0
 
-    image = median_flux / 10**division
+    image = flux / 10**division
 
     im, norm = imshow_norm(image, ax, stretch=SqrtStretch(), origin="lower", cmap=cmap, zorder=0)
     x_pixel, y_pixel = tpf.shape[1:][1], tpf.shape[1:][0]
@@ -291,6 +297,7 @@ def plot_identification(
     tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile],
     ax: Axes = None,
     mag_limit: float = None,
+    frame: int = None,
     cmap: str = "viridis",
     c_star: str = "red",
     c_mask: str = "tomato",
@@ -313,6 +320,8 @@ def plot_identification(
     mag_limit : float, optional
          The magnitude limit (Gaia G mag) to plot the stars in the TPF. If not provided, the default value will be used.
          (18 for TESS, 19.5 for Kepler/K2)
+    frame : int, optional
+        The frame number of the TPF to plot. If not provided, the median of the TPF will be used.
     cmap : str, optional
         The colormap to use for the TPF. Default is 'viridis'.
     c_star: str, optional
@@ -335,7 +344,7 @@ def plot_identification(
     ax_cb = divider.append_axes("right", size="8%", pad=0.35)
 
     plot_sky(tpf, ax, show_label, verbose)
-    plot_tpf(tpf, ax_tpf, mag_limit, cmap, c_star, c_mask, show_ticklabels, ax_cb, verbose=verbose)
+    plot_tpf(tpf, ax_tpf, mag_limit, frame, cmap, c_star, c_mask, show_ticklabels, ax_cb, verbose=verbose)
 
 
 def plot_season(
@@ -429,6 +438,17 @@ def plot_season(
     gaia_table = query_nearby_gaia_objects(tpf_list[max_index], verbose=verbose)
     for i, tpf in enumerate(tpf_list):
         if tpf is not None:
-            plot_tpf(tpf_list[i], ax_list[i], mag_limit, cmap, c_star, c_mask, False, None, gaia_table, verbose)
+            plot_tpf(
+                tpf_list[i],
+                ax_list[i],
+                mag_limit,
+                cmap=cmap,
+                c_star=c_star,
+                c_mask=c_mask,
+                show_ticklabels=False,
+                ax_cb=None,
+                gaia_table=gaia_table,
+                verbose=verbose,
+            )
             at = AnchoredText(f"Season {i + 1}", frameon=False, loc="upper left", prop=dict(size=13), zorder=100)
             ax_list[i].add_artist(at)
