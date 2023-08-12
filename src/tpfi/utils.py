@@ -128,6 +128,7 @@ def query_sky_img(
     x_length: float,
     y_length: float,
     reverse: bool,
+    verbose: bool,
 ) -> np.ndarray:
     """
     Query the image of the area of TPF from DSS2 Red Survey.
@@ -144,6 +145,8 @@ def query_sky_img(
         The y length of the TPF [arcsecond]
     reverse: bool
         Whether the direction of the TPF is reversed
+    verbose: bool
+        Whether to show the progress of querying sky image.
 
     Returns
     -------
@@ -174,8 +177,12 @@ def query_sky_img(
     radius = 1.5 * max(x_length, y_length)
 
     try:
+        if verbose:
+            print("Querying Sky Image from DSS2 Red...")
         sky_data = query_sky_data("CDS/P/DSS2/red")
     except Exception:
+        if verbose:
+            print("Querying Sky Image from DSS2 Red failed. Retry with DSS2 NIR...")
         sky_data = query_sky_data("CDS/P/DSS2/NIR")
 
     if reverse:

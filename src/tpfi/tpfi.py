@@ -31,7 +31,7 @@ logging.getLogger("astroquery").setLevel(logging.WARNING)
 
 
 def query_nearby_gaia_objects(
-    tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile], verbose: bool
+    tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile], verbose: bool = False
 ) -> Union[Table, None]:
     """
     Query the objects in the area of TPF from Gaia Catalog (Now Gaia DR3).
@@ -40,12 +40,12 @@ def query_nearby_gaia_objects(
     ----------
     tpf: `lightkurve.TessTargetPixelFile` or `lightkurve.KeplerTargetPixelFile`
         Target pixel files read by `lightkurve`
-    verbose: bool
+    verbose: bool, optional
         Whether to print the Gaia Source ID of the target
 
     Returns
     -------
-    r: `astropy.table.Table` or None
+    gaia_table: `astropy.table.Table` or None
         The table of the Gaia objects in the area of TPF
     """
 
@@ -71,33 +71,41 @@ def query_nearby_gaia_objects(
         coords = SkyCoord(ra, dec, frame="icrs")
 
     j = Gaia.cone_search_async(coords, radius, columns=["source_id", "phot_g_mean_mag", "ra", "dec", "pmra", "pmdec"])
-    r = j.get_results()
+    gaia_table = j.get_results()
 
-    if not (r["dist"] < cross_threshold).any():
+    if not (gaia_table["dist"] < cross_threshold).any():
         if verbose:
             print("Target not found in Gaia DR3")
         return None
     else:
         if verbose:
-            print(f"Target Gaia Source DR3 ID: {r[0]['source_id']}")
-        return r
+            print(f"Target Gaia Source DR3 ID: {gaia_table[0]['source_id']}")
+        return gaia_table
 
 
-def plot_sky(ax_sky: Axes, tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile], show_label: bool, verbose: bool):
+def plot_sky(
+    tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile],
+    ax: Axes = None,
+    show_label: bool = True,
+    verbose: bool = False,
+):
     """
     Plot the sky image corresponding to the target pixel file.
 
     Parameters
     ----------
-    ax_sky: `matplotlib.axes.Axes`
-        A matplotlib axes object to plot the sky image into
     tpf: `lightkurve.TessTargetPixelFile` or `lightkurve.KeplerTargetPixelFile`
-        Target pixel files read by `lightkurve`
-    show_label: bool
-        Whether to show the label of the target
-    verbose: bool
-        Whether to show the progress of the query
+        Target pixel files read by `lightkurve`.
+    ax: `matplotlib.axes.Axes`
+        A matplotlib axes object to plot the sky image into. If not provided, a new axes object will be created.
+    show_label: bool, optional
+        Whether to show the label of the target. Default is True.
+    verbose: bool, optional
+        Whether to show the progress querying sky image. Default is False.
     """
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 4))
 
     # Use pixel scale for query size
     pixel_scale = 21 if tpf.meta["TELESCOP"] == "TESS" else 4
@@ -109,64 +117,75 @@ def plot_sky(ax_sky: Axes, tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile
     theta, reverse = calculate_theta(tpf.wcs.wcs)
 
     # Sky
-    if verbose:
-        print("Querying Sky Image...")
-    sky_img = query_sky_img(tpf, theta, x_length, y_length, reverse)
+    sky_img = query_sky_img(tpf, theta, x_length, y_length, reverse, verbose)
 
-    ax_sky.imshow(sky_img, origin="lower")
-    ax_sky.set_xticks([])
-    ax_sky.set_yticks([])
-    ax_sky.set_xticklabels([])
-    ax_sky.set_yticklabels([])
-    ax_sky.set_xlim(0, sky_img.shape[1])
-    ax_sky.set_ylim(0, sky_img.shape[0])
-    ax_sky.invert_xaxis()
+    ax.imshow(sky_img, origin="lower")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_xlim(0, sky_img.shape[1])
+    ax.set_ylim(0, sky_img.shape[0])
+    ax.invert_xaxis()
 
     if show_label:
-        ax_sky.add_artist(AnchoredText(tpf.meta["OBJECT"], frameon=False, loc="upper left", prop=dict(size=13)))
+        ax.add_artist(AnchoredText(tpf.meta["OBJECT"], frameon=False, loc="upper left", prop=dict(size=13)))
 
     # Add orientation arrows
-    add_orientation(ax=ax_sky, theta=theta, pad=0.15, color="k", reverse=reverse)
+    add_orientation(ax=ax, theta=theta, pad=0.15, color="k", reverse=reverse)
 
     # Add scale bar
-    add_scalebar(ax=ax_sky, pad=0.15, length=1 / x_pixel, scale='{}"'.format(pixel_scale))
+    add_scalebar(ax=ax, pad=0.15, length=1 / x_pixel, scale='{}"'.format(pixel_scale))
 
 
 def plot_tpf(
-    ax_tpf: Axes,
     tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile],
-    r: Table,
-    cmap: str,
-    c_star: str,
-    c_mask: str,
-    show_ticklabels: bool,
-    mag_limit: float,
+    ax: Axes = None,
+    mag_limit: float = None,
+    cmap: str = "viridis",
+    c_star: str = "red",
+    c_mask: str = "tomato",
+    show_ticklabels: bool = True,
     ax_cb: Axes = None,
+    gaia_table: Table = None,
+    verbose: bool = False,
 ):
     """
     Plot the identification charts.
 
     Parameters
     ----------
-    ax_tpf: `matplotlib.axes.Axes`
-        A matplotlib axes object to plot the tpf into
     tpf: `lightkurve.TessTargetPixelFile` or `lightkurve.KeplerTargetPixelFile`
-        Target pixel files read by `lightkurve`
-    r: `astropy.table.Table`
-        The table of the Gaia objects in the area of TPF
-    cmap: str
-        The colormap to use
-    c_star: str
-        The color of the stars
-    c_mask: str
-        The color of the pipeline mask
-    show_ticklabels: bool
-        Whether to show the tick labels
-    mag_limit: float
-        The magnitude limit (Gaia G mag) to plot the stars in the TPF
-    ax_cb: `matplotlib.axes.Axes`
-        A matplotlib axes object to plot the color bar into
+        Target pixel files read by `lightkurve`.
+    ax: `matplotlib.axes.Axes`
+        A matplotlib axes object to plot the tpf into.
+    mag_limit: float, optional
+        The magnitude limit (Gaia G mag) to plot the stars in the TPF. If not provided, the default value will be used
+        (18 for TESS, 19.5 for Kepler/K2).
+    cmap: str, optional
+        The colormap to use. Default is 'viridis'.
+    c_star: str, optional
+        The color of the stars. Default is 'red'.
+    c_mask: str, optional
+        The color of the pipeline mask. Default is 'tomato'.
+    show_ticklabels: bool, optional
+        Whether to show the tick labels. Default is True.
+    ax_cb: `matplotlib.axes.Axes`, optional
+        A matplotlib axes object to plot the color bar into. If not provided, no color bar will be plotted.
+    gaia_table: `astropy.table.Table`, optional
+        The table of the Gaia objects in the area of TPF. If not provided, the Gaia objects will be queried.
+    verbose: bool, optional
+        Whether to show the progress of querying Gaia objects. Default is False.
     """
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 4))
+
+    if gaia_table is None:
+        gaia_table = query_nearby_gaia_objects(tpf, verbose=verbose)
+
+    if mag_limit is None:
+        mag_limit = 18 if tpf.meta["TELESCOP"] == "TESS" else 19.5
 
     # TPF plot
     with warnings.catch_warnings():
@@ -180,36 +199,43 @@ def plot_tpf(
 
     image = median_flux / 10**division
 
-    im, norm = imshow_norm(image, ax_tpf, stretch=SqrtStretch(), origin="lower", cmap=cmap, zorder=0)
+    im, norm = imshow_norm(image, ax, stretch=SqrtStretch(), origin="lower", cmap=cmap, zorder=0)
     x_pixel, y_pixel = tpf.shape[1:][1], tpf.shape[1:][0]
-    ax_tpf.set_xlim(-0.5, x_pixel - 0.5)
-    ax_tpf.set_ylim(-0.5, y_pixel - 0.5)
+    ax.set_xlim(-0.5, x_pixel - 0.5)
+    ax.set_ylim(-0.5, y_pixel - 0.5)
 
     if show_ticklabels:
-        ax_tpf.set_xticks(np.arange(0, x_pixel, 1))
-        ax_tpf.set_yticks(np.arange(0, y_pixel, 1))
-        ax_tpf.set_xticklabels(np.arange(1, x_pixel + 1, 1))
-        ax_tpf.set_yticklabels(np.arange(1, y_pixel + 1, 1))
+        ax.set_xticks(np.arange(0, x_pixel, 1))
+        ax.set_yticks(np.arange(0, y_pixel, 1))
+        ax.set_xticklabels(np.arange(1, x_pixel + 1, 1))
+        ax.set_yticklabels(np.arange(1, y_pixel + 1, 1))
     else:
-        ax_tpf.set_xticks([])
-        ax_tpf.set_yticks([])
+        ax.set_xticks([])
+        ax.set_yticks([])
 
-    ax_tpf.yaxis.set_ticks_position("right")
-    ax_tpf.invert_xaxis()
+    ax.yaxis.set_ticks_position("right")
+    ax.invert_xaxis()
 
-    if r is None:
+    if gaia_table is None:
         at = AnchoredText("No Gaia DR3 Data", frameon=False, loc="upper left", prop=dict(size=13))
-        ax_tpf.add_artist(at)
+        ax.add_artist(at)
     else:
-        target_gaia_id = r[0]["source_id"]
-        target_gaia_mag = r[0]["phot_g_mean_mag"]
+        target_gaia_id = gaia_table[0]["source_id"]
+        target_gaia_mag = gaia_table[0]["phot_g_mean_mag"]
 
-        r.sort("phot_g_mean_mag")
-        this = np.nonzero(r["source_id"] == target_gaia_id)[0][0]
+        gaia_table.sort("phot_g_mean_mag")
+        this = np.nonzero(gaia_table["source_id"] == target_gaia_id)[0][0]
         magnitude_limit = max(target_gaia_mag + 3, mag_limit)
-        r = r[r["phot_g_mean_mag"] < magnitude_limit][: max(this + 50, 300)]
+        gaia_table = gaia_table[gaia_table["phot_g_mean_mag"] < magnitude_limit][: max(this + 50, 300)]
 
-        qr = QTable([r["ra"].filled(), r["dec"].filled(), r["pmra"].filled(0), r["pmdec"].filled(0)])
+        qr = QTable(
+            [
+                gaia_table["ra"].filled(),
+                gaia_table["dec"].filled(),
+                gaia_table["pmra"].filled(0),
+                gaia_table["pmdec"].filled(0),
+            ]
+        )
         coords_gaia = SkyCoord(
             qr["ra"], qr["dec"], pm_ra_cosdec=qr["pmra"], pm_dec=qr["pmdec"], frame="icrs", obstime=REF_EPOCH
         )
@@ -218,7 +244,7 @@ def plot_tpf(
             coords_obs = coords_gaia.apply_space_motion(new_obstime=tpf.time[0])
 
         x, y = tpf.wcs.world_to_pixel(coords_obs)
-        gaia_mags = np.asarray(r["phot_g_mean_mag"])
+        gaia_mags = np.asarray(gaia_table["phot_g_mean_mag"])
 
         size_k = 1.2 * np.piecewise(
             target_gaia_mag,
@@ -229,8 +255,8 @@ def plot_tpf(
             size_k = size_k * 5
         size = size_k / 1.5 ** (gaia_mags - target_gaia_mag)
 
-        ax_tpf.scatter(x, y, s=size, c=c_star, alpha=0.5, edgecolor=None, zorder=11)
-        ax_tpf.scatter(x[this], y[this], marker="x", c="white", s=size_k / 2.5, zorder=12)
+        ax.scatter(x, y, s=size, c=c_star, alpha=0.5, edgecolor=None, zorder=11)
+        ax.scatter(x[this], y[this], marker="x", c="white", s=size_k / 2.5, zorder=12)
 
     # Pipeline aperture
     aperture = tpf.pipeline_mask
@@ -238,14 +264,14 @@ def plot_tpf(
     for i, j in aperture_masks:
         xy = (j - 0.5, i - 0.5)
         if aperture[i, j]:
-            ax_tpf.add_patch(patches.Rectangle(xy, 1, 1, color=c_mask, fill=True, alpha=0.4))
-            ax_tpf.add_patch(patches.Rectangle(xy, 1, 1, color=c_mask, fill=False, alpha=0.6, lw=1.5, zorder=9))
+            ax.add_patch(patches.Rectangle(xy, 1, 1, color=c_mask, fill=True, alpha=0.4))
+            ax.add_patch(patches.Rectangle(xy, 1, 1, color=c_mask, fill=False, alpha=0.6, lw=1.5, zorder=9))
         else:
-            ax_tpf.add_patch(patches.Rectangle(xy, 1, 1, color="gray", fill=False, alpha=0.2, lw=0.5, zorder=8))
+            ax.add_patch(patches.Rectangle(xy, 1, 1, color="gray", fill=False, alpha=0.2, lw=0.5, zorder=8))
 
     # Add orientation arrows
     theta, reverse = calculate_theta(tpf.wcs.wcs)
-    add_orientation(ax=ax_tpf, theta=theta, pad=0.15, color="k", reverse=reverse)
+    add_orientation(ax=ax, theta=theta, pad=0.15, color="k", reverse=reverse)
 
     if ax_cb is not None:
         # Add color bar
@@ -264,13 +290,7 @@ def plot_tpf(
 def plot_identification(
     tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile],
     ax: Axes = None,
-    mag_limit: float = None,
-    cmap: str = "viridis",
-    c_star: str = "red",
-    c_mask: str = "tomato",
-    show_label: bool = True,
-    show_ticklabels: bool = True,
-    verbose: bool = False,
+    **kwargs,
 ):
     """
     Plot the identification chart for a given target pixel file (TPF).
@@ -284,53 +304,26 @@ def plot_identification(
         Target pixel files read by `lightkurve`
     ax : `matplotlib.axes.Axes`, optional
         A matplotlib axes object to plot the identification chart into. If not provided, a new figure will be created.
-    mag_limit : float, optional
-        The magnitude limit (Gaia G mag) to plot the stars in the TPF. If not provided, the default value will be used.
-        (18 for TESS, 19.5 for Kepler/K2)
-    cmap : str, optional
-        The colormap to use for the TPF. Default is 'viridis'.
-    c_star: str, optional
-        The color of the stars in the TPF. Default is 'red'.
-    c_mask: str, optional
-        The color of the pipeline mask in the TPF. Default is 'tomato'.
-    show_label: bool, optional
-        Whether to show the label of the target in the sky image. Default is True.
-    show_ticklabels : bool, optional
-        Whether to show the tick labels in the TPF. Default is True.
-    verbose : bool, optional
-        Whether to print out progress messages. Default is False.
-
-    Returns
-    -------
-    ax : `matplotlib.axes.Axes`
-        The matplotlib axes object.
+    kwargs : dict, optional
+        Other keyword arguments to be passed to `plot_sky` and `plot_tpf`.
     """
 
     if ax is None:
         _, ax = plt.subplots(figsize=(9, 4))
 
-    if mag_limit is None:
-        mag_limit = 18 if tpf.meta["TELESCOP"] == "TESS" else 19.5
-
     divider = make_axes_locatable(ax)
     ax_tpf = divider.append_axes("right", size="100%", pad=0.1)
     ax_cb = divider.append_axes("right", size="8%", pad=0.35)
 
-    plot_sky(ax, tpf, show_label, verbose)
-
-    r = query_nearby_gaia_objects(tpf, verbose=verbose)
-    plot_tpf(ax_tpf, tpf, r, cmap, c_star, c_mask, show_ticklabels, mag_limit, ax_cb)
+    plot_sky(tpf, ax, **kwargs)
+    plot_tpf(tpf, ax_tpf, ax_cb=ax_cb, **kwargs)
 
 
 def plot_season(
     label: str,
     ax: Axes = None,
-    mag_limit: float = 19.5,
-    cmap: str = "gray_r",
-    c_star: str = "red",
-    c_mask: str = "tomato",
-    show_label: bool = True,
     verbose: bool = False,
+    **kwargs,
 ):
     """
     Plot identification charts for different seasons of an astronomical object using data from the Kepler mission.
@@ -344,23 +337,10 @@ def plot_season(
         The label of the astronomical object to be searched for in the Kepler mission.
     ax : `matplotlib.axes.Axes`, optional
         A matplotlib axes object to plot the identification charts into. If not provided, a new figure will be created.
-    mag_limit : float, optional
-        The magnitude limit (Gaia G mag) to plot the stars in the TPF. Default is 19.5.
-    c_star: str, optional
-        The color of the stars in the TPFs. Default is 'red'.
-    c_mask: str, optional
-        The color of the pipeline mask in the TPFs. Default is 'tomato'.
-    show_label: bool, optional
-        Whether to show the label of the target in the sky image. Default is True.
-    cmap : str, optional
-        The colormap to use for the TPF. Default is 'gray_r'.
     verbose : bool, optional
         Whether to print out progress messages. Default is False.
-
-    Returns
-    -------
-    ax : `matplotlib.axes.Axes`
-        The matplotlib axes object.
+    kwargs : dict, optional
+        Other keyword arguments to be passed to `plot_sky` and `plot_tpf`.
     """
 
     if ax is None:
@@ -374,7 +354,7 @@ def plot_season(
     for season in range(4):
         for mission in search_result.mission:
             quarter = int(mission[-2:])
-            if quarter % 4 == season:
+            if quarter != 0 and (quarter - 1) % 4 == season:
                 quarter_array[season] = quarter
                 break
 
@@ -413,11 +393,11 @@ def plot_season(
     for percent in percent_array:
         ax_list.append(divider.append_axes("right", size=f"{percent}%", pad=0.1))
 
-    plot_sky(ax, tpf_list[max_index], show_label, verbose)
+    plot_sky(tpf_list[max_index], ax, **kwargs)
 
-    r = query_nearby_gaia_objects(tpf_list[max_index], verbose=verbose)
+    gaia_table = query_nearby_gaia_objects(tpf_list[max_index], verbose=verbose)
     for i, tpf in enumerate(tpf_list):
         if tpf is not None:
-            plot_tpf(ax_list[i], tpf_list[i], r, cmap, c_star, c_mask, False, mag_limit)
+            plot_tpf(tpf_list[i], ax_list[i], cmap="gray_r", gaia_table=gaia_table, show_ticklabels=False, **kwargs)
             at = AnchoredText(f"Season {i + 1}", frameon=False, loc="upper left", prop=dict(size=13), zorder=100)
             ax_list[i].add_artist(at)
