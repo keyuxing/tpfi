@@ -290,7 +290,13 @@ def plot_tpf(
 def plot_identification(
     tpf: Union[TessTargetPixelFile, KeplerTargetPixelFile],
     ax: Axes = None,
-    **kwargs,
+    mag_limit: float = None,
+    cmap: str = "viridis",
+    c_star: str = "red",
+    c_mask: str = "tomato",
+    show_label: bool = True,
+    show_ticklabels: bool = True,
+    verbose: bool = False,
 ):
     """
     Plot the identification chart for a given target pixel file (TPF).
@@ -304,8 +310,21 @@ def plot_identification(
         Target pixel files read by `lightkurve`
     ax : `matplotlib.axes.Axes`, optional
         A matplotlib axes object to plot the identification chart into. If not provided, a new figure will be created.
-    kwargs : dict, optional
-        Other keyword arguments to be passed to `plot_sky` and `plot_tpf`.
+    mag_limit : float, optional
+         The magnitude limit (Gaia G mag) to plot the stars in the TPF. If not provided, the default value will be used.
+         (18 for TESS, 19.5 for Kepler/K2)
+    cmap : str, optional
+        The colormap to use for the TPF. Default is 'viridis'.
+    c_star: str, optional
+        The color of the stars in the TPF. Default is 'red'.
+    c_mask: str, optional
+        The color of the pipeline mask in the TPF. Default is 'tomato'.
+    show_label: bool, optional
+        Whether to show the label of the target in the sky image. Default is True.
+    show_ticklabels : bool, optional
+        Whether to show the tick labels in the TPF. Default is True.
+    verbose : bool, optional
+        Whether to print out progress messages. Default is False.
     """
 
     if ax is None:
@@ -315,15 +334,19 @@ def plot_identification(
     ax_tpf = divider.append_axes("right", size="100%", pad=0.1)
     ax_cb = divider.append_axes("right", size="8%", pad=0.35)
 
-    plot_sky(tpf, ax, **kwargs)
-    plot_tpf(tpf, ax_tpf, ax_cb=ax_cb, **kwargs)
+    plot_sky(tpf, ax, show_label, verbose)
+    plot_tpf(tpf, ax_tpf, mag_limit, cmap, c_star, c_mask, show_ticklabels, ax_cb, verbose=verbose)
 
 
 def plot_season(
     label: str,
     ax: Axes = None,
+    mag_limit: float = 19.5,
+    cmap: str = "gray_r",
+    c_star: str = "red",
+    c_mask: str = "tomato",
+    show_label: bool = True,
     verbose: bool = False,
-    **kwargs,
 ):
     """
     Plot identification charts for different seasons of an astronomical object using data from the Kepler mission.
@@ -337,10 +360,18 @@ def plot_season(
         The label of the astronomical object to be searched for in the Kepler mission.
     ax : `matplotlib.axes.Axes`, optional
         A matplotlib axes object to plot the identification charts into. If not provided, a new figure will be created.
+    mag_limit : float, optional
+        The magnitude limit (Gaia G mag) to plot the stars in the TPF. Default is 19.5.
+    c_star: str, optional
+        The color of the stars in the TPFs. Default is 'red'.
+    c_mask: str, optional
+        The color of the pipeline mask in the TPFs. Default is 'tomato'.
+    show_label: bool, optional
+        Whether to show the label of the target in the sky image. Default is True.
+    cmap : str, optional
+        The colormap to use for the TPF. Default is 'gray_r'.
     verbose : bool, optional
         Whether to print out progress messages. Default is False.
-    kwargs : dict, optional
-        Other keyword arguments to be passed to `plot_sky` and `plot_tpf`.
     """
 
     if ax is None:
@@ -354,7 +385,7 @@ def plot_season(
     for season in range(4):
         for mission in search_result.mission:
             quarter = int(mission[-2:])
-            if quarter != 0 and (quarter - 1) % 4 == season:
+            if quarter != 0 and (quarter - 1) % 4 == season:  # Exclude Quarter 0
                 quarter_array[season] = quarter
                 break
 
@@ -393,11 +424,11 @@ def plot_season(
     for percent in percent_array:
         ax_list.append(divider.append_axes("right", size=f"{percent}%", pad=0.1))
 
-    plot_sky(tpf_list[max_index], ax, **kwargs)
+    plot_sky(tpf_list[max_index], ax, show_label, verbose)
 
     gaia_table = query_nearby_gaia_objects(tpf_list[max_index], verbose=verbose)
     for i, tpf in enumerate(tpf_list):
         if tpf is not None:
-            plot_tpf(tpf_list[i], ax_list[i], cmap="gray_r", gaia_table=gaia_table, show_ticklabels=False, **kwargs)
+            plot_tpf(tpf_list[i], ax_list[i], mag_limit, cmap, c_star, c_mask, False, None, gaia_table, verbose)
             at = AnchoredText(f"Season {i + 1}", frameon=False, loc="upper left", prop=dict(size=13), zorder=100)
             ax_list[i].add_artist(at)

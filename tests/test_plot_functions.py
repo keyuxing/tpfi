@@ -39,7 +39,7 @@ class TestIdentificationFunctions(unittest.TestCase):
     def test_plot_tpf_with_cbar(self):
         _, ax = plt.subplots(figsize=(6, 4))
         divider = make_axes_locatable(ax)
-        ax_cb = divider.append_axes("right", size="15%", pad=0.1)
+        ax_cb = divider.append_axes("right", size="10%", pad=0.3)
 
         plot_tpf(self.tpf, ax=ax, ax_cb=ax_cb)
         plt.savefig(OUTPUT_DIR / f"test_tpf_with_cbar_{self.tpf.mission}.png", bbox_inches="tight", dpi=300)
@@ -48,11 +48,33 @@ class TestIdentificationFunctions(unittest.TestCase):
         plot_identification(self.tpf)
         plt.savefig(OUTPUT_DIR / f"test_identification_{self.tpf.mission}.png", bbox_inches="tight", dpi=300)
 
+    def test_plot_identification_with_params(self):
+        plot_identification(
+            self.tpf,
+            mag_limit=20,
+            cmap="Blues",
+            c_star="k",
+            c_mask="grey",
+            show_label=False,
+            show_ticklabels=False,
+            verbose=True,
+        )
+        plt.savefig(
+            OUTPUT_DIR / f"test_identification_with_params_{self.tpf.mission}.png", bbox_inches="tight", dpi=300
+        )
+
 
 class TestSeasonFunction(unittest.TestCase):
+    def tearDown(self):
+        plt.close("all")
+
     def test_plot_season(self):
-        plot_season("KIC10139564")
+        plot_season("KIC2991403")
         plt.savefig(OUTPUT_DIR / "test_season.png", bbox_inches="tight", dpi=300)
+
+    def test_plot_season_with_params(self):
+        plot_season("KIC2991403", mag_limit=20, cmap="Blues", c_star="k", c_mask="grey", show_label=False, verbose=True)
+        plt.savefig(OUTPUT_DIR / "test_season_with_params.png", bbox_inches="tight", dpi=300)
 
 
 if __name__ == "__main__":
