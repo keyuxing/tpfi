@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.8', '3.11' ]
+        python-version: [ '3.9', '3.12' ]
 
     name: Test with Python ${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -35,8 +35,8 @@ jobs:
           poetry run python -m unittest
 
       - name: Upload results
-        if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v3
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
         with:
           name: test_output
           path: test_output/
@@ -44,7 +44,7 @@ jobs:
   black:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: psf/black@stable
         with:
           jupyter: true
@@ -52,5 +52,5 @@ jobs:
   ruff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: chartboost/ruff-action@v1
