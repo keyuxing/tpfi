@@ -73,15 +73,15 @@ pip install -U tpfi
 
 See the [example notebook](https://github.com/keyuxing/tpfi/blob/main/examples/tutorial.ipynb) for more details.
 
-## Citation
+## How to cite
 
 If you use this package in your research, please add the following sentence to the footnote 
 or acknowledgement section of your paper:
-> This work made use of \texttt{tpfi} by Keyu Xing (publicly available at \url{https://github.com/keyuxing/tpfi}).
+> This work has made use of \texttt{tpfi} (publicly available at \url{https://github.com/keyuxing/tpfi}).
 
 and cite our paper: 
 
-Xing et al., 2023, in prep. (will be updated soon)
+Xing et al., 2023, [arXiv link](https://arxiv.org/abs/2402.16018)
 
 
 ## Contributing

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tpfi"
-version = "1.2.2"
+version = "1.2.3"
 description = "Plot identification charts for Kepler, K2 and TESS."
 authors = ["Keyu Xing <kyxing@mail.bnu.edu.cn>"]
 readme = "README.md"
