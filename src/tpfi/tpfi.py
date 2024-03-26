@@ -70,7 +70,9 @@ def query_nearby_gaia_objects(
         cross_threshold = 5 / 3600
         coords = SkyCoord(ra, dec, frame="icrs")
 
-    j = Gaia.cone_search_async(coords, radius, columns=["source_id", "phot_g_mean_mag", "ra", "dec", "pmra", "pmdec"])
+    j = Gaia.cone_search_async(
+        coordinate=coords, radius=radius, columns=["SOURCE_ID", "phot_g_mean_mag", "ra", "dec", "pmra", "pmdec"]
+    )
     gaia_table = j.get_results()
 
     if not (gaia_table["dist"] < cross_threshold).any():
@@ -79,7 +81,7 @@ def query_nearby_gaia_objects(
         return None
     else:
         if verbose:
-            print(f"Target Gaia Source DR3 ID: {gaia_table[0]['source_id']}")
+            print(f"Target Gaia Source DR3 ID: {gaia_table[0]['SOURCE_ID']}")
         return gaia_table
 
 
@@ -235,11 +237,11 @@ def plot_tpf(
         at = AnchoredText("No Gaia DR3 Data", frameon=False, loc="upper left", prop=dict(size=13))
         ax.add_artist(at)
     else:
-        target_gaia_id = gaia_table[0]["source_id"]
+        target_gaia_id = gaia_table[0]["SOURCE_ID"]
         target_gaia_mag = gaia_table[0]["phot_g_mean_mag"]
 
         gaia_table.sort("phot_g_mean_mag")
-        this = np.nonzero(gaia_table["source_id"] == target_gaia_id)[0][0]
+        this = np.nonzero(gaia_table["SOURCE_ID"] == target_gaia_id)[0][0]
         magnitude_limit = max(target_gaia_mag + 3, mag_limit)
         gaia_table = gaia_table[gaia_table["phot_g_mean_mag"] < magnitude_limit][: max(this + 50, 300)]
 

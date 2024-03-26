@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tpfi"
-version = "1.2.3"
+version = "1.2.4"
 description = "Plot identification charts for Kepler, K2 and TESS."
 authors = ["Keyu Xing <kyxing@mail.bnu.edu.cn>"]
 readme = "README.md"
@@ -22,5 +22,5 @@ line-length = 120
 
 [tool.ruff]
 line-length = 120
-select = ["F", "I", "E", "W", "YTT", "B", "Q", "PLE", "PLW"]
+lint.select = ["F", "I", "E", "W", "YTT", "B", "Q", "PLE", "PLW"]
 src = ["src", "test"]
