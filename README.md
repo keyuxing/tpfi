@@ -81,8 +81,7 @@ or acknowledgement section of your paper:
 
 and cite our paper: 
 
-Xing et al., 2023, [arXiv link](https://arxiv.org/abs/2402.16018)
-
+Xing et al., 2024, [link](https://doi.org/10.3847/1538-4365/ad2ddd)
 
 ## Contributing
 
